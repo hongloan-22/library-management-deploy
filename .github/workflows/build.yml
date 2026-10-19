@@ -14,14 +14,15 @@ permissions:
 jobs:
   build:
     name: Validate and build Docker images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Validate Docker Compose configuration
         run: docker compose --env-file .env.example config -q
 
       - name: Build library application image
         run: docker compose --env-file .env.example build app
+
