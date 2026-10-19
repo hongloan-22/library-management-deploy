@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sửa thông tin sách</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #243247;
+        }
+        main {
+            max-width: 650px;
+            margin: 35px auto;
+            padding: 28px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #152a4410;
+        }
+        label { display: block; font-weight: bold; margin: 16px 0 7px; }
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #ccd5e0;
+            border-radius: 6px;
+        }
+        button, .back {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 11px 16px;
+            border: 0;
+            border-radius: 6px;
+            background: #1769aa;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .back { background: #64748b; margin-left: 8px; }
+        .message { padding: 12px; margin-top: 10px; background: #fde8e7; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Sửa thông tin sách</h1>
+    <p>Mã sách: {{ book.id }}</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <form method="post">
+        <label for="title">Tên sách *</label>
+        <input id="title" name="title" maxlength="200"
+               value="{{ book.title }}" required>
+
+        <label for="author">Tác giả *</label>
+        <input id="author" name="author" maxlength="150"
+               value="{{ book.author }}" required>
+
+        <label for="category">Thể loại</label>
+        <input id="category" name="category" maxlength="100"
+               value="{{ book.category }}">
+
+        <label for="quantity">Số lượng</label>
+        <input id="quantity" name="quantity" type="number" min="0"
+               value="{{ book.quantity }}" required>
+
+        <button type="submit">Lưu thay đổi</button>
+        <a class="back" href="{{ url_for('index') }}">Quay lại</a>
+    </form>
+</main>
+</body>
+</html>
+

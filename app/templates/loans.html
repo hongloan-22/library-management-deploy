@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý mượn trả</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: Arial, sans-serif; background: #f3f6fb; color: #243247; }
+        header { background: #174a7e; color: white; padding: 24px max(5%, calc((100% - 1150px) / 2)); }
+        main { max-width: 1150px; margin: 28px auto; padding: 0 18px; }
+        .panel { background: white; padding: 22px; margin-bottom: 22px; border-radius: 12px; box-shadow: 0 3px 12px #152a4410; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+        label { display: block; font-weight: bold; margin-bottom: 7px; }
+        input, select { width: 100%; padding: 11px; border: 1px solid #ccd5e0; border-radius: 6px; }
+        button, .link { display: inline-block; padding: 10px 14px; border: 0; border-radius: 6px; background: #1769aa; color: white; text-decoration: none; cursor: pointer; }
+        .danger { background: #b42318; }
+        .submit { margin-top: 16px; }
+        .message { padding: 12px; margin-bottom: 10px; border-radius: 6px; }
+        .success { background: #e5f7ec; color: #176534; }
+        .error { background: #fde8e7; color: #9b1c16; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e5eaf0; }
+        th { background: #eef4fa; }
+        .status { font-weight: bold; }
+        .overdue { color: #b42318; }
+        .returned { color: #176534; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Quản lý mượn/trả sách</h1>
+    <p>Theo dõi độc giả, hạn trả và số lượng sách</p>
+</header>
+
+<main>
+    <p>
+        <a class="link" href="{{ url_for('index') }}">Quản lý sách</a>
+        <a class="link" href="{{ url_for('readers') }}">Quản lý độc giả</a>
+    </p>
+
+    <section class="panel">
+        <h2>Ghi nhận mượn sách</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        {% if readers and books %}
+        <form method="post" action="{{ url_for('add_loan') }}">
+            <div class="grid">
+                <div>
+                    <label for="reader_id">Độc giả *</label>
+                    <select id="reader_id" name="reader_id" required>
+                        {% for reader in readers %}
+                        <option value="{{ reader.id }}">{{ reader.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="book_id">Sách *</label>
+                    <select id="book_id" name="book_id" required>
+                        {% for book in books %}
+                        <option value="{{ book.id }}" {% if book.quantity < 1 %}disabled{% endif %}>
+                            {{ book.title }} — còn {{ book.quantity }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="due_date">Hạn trả *</label>
+                    <input id="due_date" name="due_date" type="date"
+                           min="{{ today }}" required>
+                </div>
+            </div>
+            <button class="submit" type="submit">Xác nhận mượn</button>
+        </form>
+        {% else %}
+        <p>Hãy thêm ít nhất một độc giả và một cuốn sách trước khi ghi nhận mượn.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <h2>Lịch sử mượn/trả ({{ loans|length }})</h2>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Độc giả</th>
+                        <th>Sách</th>
+                        <th>Ngày mượn</th>
+                        <th>Hạn trả</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.id }}</td>
+                        <td>{{ loan.full_name }}</td>
+                        <td>{{ loan.title }}</td>
+                        <td>{{ loan.borrowed_at }}</td>
+                        <td>{{ loan.due_date }}</td>
+                        <td>
+                            {% if loan.status == 'returned' %}
+                                <span class="status returned">Đã trả</span>
+                                <br><small>{{ loan.returned_at }}</small>
+                            {% elif loan.overdue %}
+                                <span class="status overdue">Quá hạn</span>
+                            {% else %}
+                                <span class="status">Đang mượn</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if loan.status == 'borrowed' %}
+                            <form method="post"
+                                  action="{{ url_for('return_loan', loan_id=loan.id) }}"
+                                  onsubmit="return confirm('Xác nhận độc giả đã trả sách?')">
+                                <button type="submit">Trả sách</button>
+                            </form>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7">Chưa có giao dịch mượn/trả nào.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>
+

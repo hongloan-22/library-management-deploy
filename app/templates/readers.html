@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý độc giả</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #243247;
+        }
+        header {
+            padding: 24px max(5%, calc((100% - 1100px) / 2));
+            background: #174a7e;
+            color: white;
+        }
+        main { max-width: 1100px; margin: 28px auto; padding: 0 18px; }
+        .panel {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #152a4410;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+        label { display: block; font-weight: bold; margin-bottom: 7px; }
+        input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccd5e0;
+            border-radius: 6px;
+        }
+        button, .link {
+            display: inline-block;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 6px;
+            background: #1769aa;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .danger { background: #b42318; }
+        .submit { margin-top: 16px; }
+        .message { padding: 12px; margin-bottom: 10px; border-radius: 6px; }
+        .success { background: #e5f7ec; color: #176534; }
+        .error { background: #fde8e7; color: #9b1c16; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 13px 10px; text-align: left; border-bottom: 1px solid #e5eaf0; }
+        th { background: #eef4fa; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Quản lý độc giả</h1>
+    <p>Thêm mới, tìm kiếm và quản lý thông tin độc giả</p>
+</header>
+
+<main>
+    <p><a class="link" href="{{ url_for('index') }}">← Quay lại danh sách sách</a></p>
+
+    <section class="panel">
+        <h2>Thêm độc giả</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form method="post" action="{{ url_for('add_reader') }}">
+            <div class="grid">
+                <div>
+                    <label for="full_name">Họ tên *</label>
+                    <input id="full_name" name="full_name" maxlength="150" required>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input id="email" name="email" type="email" maxlength="254">
+                </div>
+                <div>
+                    <label for="phone">Số điện thoại</label>
+                    <input id="phone" name="phone" maxlength="30">
+                </div>
+            </div>
+            <button class="submit" type="submit">Thêm độc giả</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Danh sách độc giả ({{ readers|length }})</h2>
+
+        <form method="get" style="display:flex; gap:10px; margin-bottom:20px;">
+            <input name="q" value="{{ keyword }}"
+                   placeholder="Tìm tên, email hoặc số điện thoại">
+            <button type="submit">Tìm kiếm</button>
+            <a class="link" href="{{ url_for('readers') }}">Xóa lọc</a>
+        </form>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Họ tên</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for reader in readers %}
+                    <tr>
+                        <td>{{ reader.id }}</td>
+                        <td>{{ reader.full_name }}</td>
+                        <td>{{ reader.email or '-' }}</td>
+                        <td>{{ reader.phone or '-' }}</td>
+                        <td>
+                            <form method="post"
+                                  action="{{ url_for('delete_reader', reader_id=reader.id) }}"
+                                  onsubmit="return confirm('Bạn có chắc muốn xóa độc giả này?')">
+                                <button class="danger" type="submit">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5">Chưa có độc giả nào.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>
+

@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quản lý thư viện</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #243247;
+        }
+        header {
+            background: #174a7e;
+            color: white;
+            padding: 24px max(5%, calc((100% - 1100px) / 2));
+        }
+        header h1 { margin: 0 0 8px; }
+        main { max-width: 1100px; margin: 28px auto; padding: 0 18px; }
+        .panel {
+            background: white;
+            padding: 22px;
+            margin-bottom: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #152a4410;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+        label { display: block; font-weight: bold; margin-bottom: 7px; }
+        input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccd5e0;
+            border-radius: 6px;
+        }
+        button {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 14px;
+            cursor: pointer;
+            background: #1769aa;
+            color: white;
+        }
+        .submit { margin-top: 16px; }
+        .delete { background: #b42318; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td {
+            padding: 13px 10px;
+            text-align: left;
+            border-bottom: 1px solid #e5eaf0;
+        }
+        th { background: #eef4fa; }
+        .message { padding: 12px; margin-bottom: 10px; border-radius: 6px; }
+        .success { background: #e5f7ec; color: #176534; }
+        .error { background: #fde8e7; color: #9b1c16; }
+        .empty { color: #65758b; text-align: center; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Quản lý thư viện</h1>
+<p style="margin: 16px 0;">
+    <a href="{{ url_for('readers') }}"
+       style="display:inline-block;padding:10px 14px;
+              background:#1769aa;color:white;
+              text-decoration:none;border-radius:6px;">
+        Quản lý độc giả
+    </a>
+</p>
+
+<a href="{{ url_for('loans') }}"
+   style="display:inline-block;padding:10px 14px;
+          background:#1769aa;color:white;
+          text-decoration:none;border-radius:6px;">
+    Quản lý mượn/trả
+</a>
+
+    <div>Hệ thống quản lý sách · Flask + PostgreSQL</div>
+</header>
+
+<main>
+    <section class="panel">
+        <h2>Thêm sách mới</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <form action="{{ url_for('add_book') }}" method="post">
+            <div class="form-grid">
+                <div>
+                    <label for="title">Tên sách *</label>
+                    <input id="title" name="title" maxlength="200" required>
+                </div>
+                <div>
+                    <label for="author">Tác giả *</label>
+                    <input id="author" name="author" maxlength="150" required>
+                </div>
+                <div>
+                    <label for="category">Thể loại</label>
+                    <input id="category" name="category" maxlength="100"
+                           placeholder="Ví dụ: Văn học">
+                </div>
+                <div>
+                    <label for="quantity">Số lượng</label>
+                    <input id="quantity" name="quantity" type="number"
+                           min="0" value="1" required>
+                </div>
+            </div>
+            <button class="submit" type="submit">Thêm sách</button>
+        </form>
+    </section>
+
+<section class="panel">
+    <h2>Danh sách sách ({{ books|length }})</h2>
+
+    <form action="{{ url_for('index') }}" method="get"
+          style="display:flex; gap:10px; margin-bottom:20px;">
+        <input name="q" value="{{ keyword }}"
+               placeholder="Tìm theo tên sách, tác giả hoặc thể loại">
+        <button type="submit">Tìm kiếm</button>
+        <a href="{{ url_for('index') }}"
+           style="padding:10px; text-decoration:none;">Xóa lọc</a>
+    </form>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên sách</th>
+                        <th>Tác giả</th>
+                        <th>Thể loại</th>
+                        <th>Số lượng</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for book in books %}
+                    <tr>
+                        <td>{{ book.id }}</td>
+                        <td>{{ book.title }}</td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.category }}</td>
+                        <td>{{ book.quantity }}</td>
+
+<td style="white-space:nowrap;">
+    <a href="{{ url_for('edit_book', book_id=book.id) }}"
+       style="display:inline-block; padding:10px 14px;
+              background:#1769aa; color:white;
+              text-decoration:none; border-radius:6px;">
+        Sửa
+    </a>
+
+    <form action="{{ url_for('delete_book', book_id=book.id) }}"
+          method="post" style="display:inline-block;"
+          onsubmit="return confirm('Bạn có chắc muốn xóa sách này?')">
+        <button class="delete" type="submit">Xóa</button>
+    </form>
+</td>
+
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td class="empty" colspan="6">Chưa có sách nào.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>
+
