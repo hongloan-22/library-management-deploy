@@ -1,5 +1,6 @@
-LABEL org.opencontainers.image.source="https://github.com/hongloan-22/library-management-deploy"
 FROM python:3.12-slim
+
+LABEL org.opencontainers.image.source="https://github.com/hongloan-22/library-management-deploy"
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
